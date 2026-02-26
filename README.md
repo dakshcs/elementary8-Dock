@@ -54,7 +54,7 @@ sudo apt install -y \
 
 ```bash
 git clone https://github.com/Juandamian18/Dock-with-Now-Playing.git
-cd dock
+cd Dock-with-Now-Playing
 ```
 
 If you already cloned it:

@@ -207,7 +207,8 @@ backgrounditem .close-button {
 
 .now-playing-artwork {
     border-radius: 10px;
-    background: radial-gradient(circle at 30% 20%, alpha(@selected_bg_color, 0.5), alpha(black, 0.85));
+    background: radial-gradient(circle at 30% 20%, alpha(black, 0.18), alpha(black, 0.88));
+    box-shadow: none;
 }
 
 .now-playing-dim {
