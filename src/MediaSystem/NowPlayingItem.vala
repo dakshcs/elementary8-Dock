@@ -9,9 +9,16 @@ public class Dock.NowPlayingItem : ContainerItem {
     private const string MINIMAL_MODE_ACTION = "minimal-mode";
 
     private const int CONTROLS_WIDTH = 84;
+    private const int MINIMAL_TOOLTIP_OFFSET_Y = -8;
     private const int CONTENT_HORIZONTAL_MARGIN = 10;
     private const int CONTENT_SPACING = 8;
     private const int TEXT_WIDTH = CARD_WIDTH - (CONTENT_HORIZONTAL_MARGIN * 2) - CONTROLS_WIDTH - CONTENT_SPACING;
+
+    private class InteractiveTooltipPopover : Gtk.Popover {
+        class construct {
+            set_css_name ("tooltip");
+        }
+    }
 
     private class FixedArtwork : Gtk.Widget {
         private Gdk.Paintable? _paintable;
@@ -214,7 +221,6 @@ public class Dock.NowPlayingItem : ContainerItem {
     private bool minimal_hovering_item = false;
     private bool minimal_hovering_popover = false;
     private uint minimal_popdown_timeout_id = 0;
-    private uint minimal_tooltip_guard_id = 0;
 
     private bool visible_in_dock = false;
     private string? current_art_url = null;
@@ -381,13 +387,13 @@ public class Dock.NowPlayingItem : ContainerItem {
         tooltip_box.append (tooltip_artist_label);
         tooltip_box.append (tooltip_controls);
 
-        minimal_hover_popover = new Gtk.Popover () {
+        minimal_hover_popover = new InteractiveTooltipPopover () {
             autohide = false,
             position = TOP,
             has_arrow = false,
             child = tooltip_box
         };
-        minimal_hover_popover.set_offset (0, -1);
+        minimal_hover_popover.set_offset (0, MINIMAL_TOOLTIP_OFFSET_Y);
         minimal_hover_popover.set_parent (this);
 
         var minimal_item_motion = new Gtk.EventControllerMotion ();
@@ -447,7 +453,6 @@ public class Dock.NowPlayingItem : ContainerItem {
 
     ~NowPlayingItem () {
         cancel_minimal_popdown ();
-        stop_minimal_tooltip_guard ();
         minimal_hover_popover.unparent ();
         minimal_hover_popover.dispose ();
         popover_menu.unparent ();
@@ -483,7 +488,7 @@ public class Dock.NowPlayingItem : ContainerItem {
             dim_overlay.visible = false;
             content_overlay.visible = false;
             tooltip_controls.visible = true;
-            tooltip_text = "";
+            tooltip_text = null;
             popover_tooltip.popdown ();
         } else {
             remove_css_class ("minimal");
@@ -493,7 +498,9 @@ public class Dock.NowPlayingItem : ContainerItem {
             content_overlay.visible = true;
             tooltip_controls.visible = false;
             minimal_hover_popover.popdown ();
-            stop_minimal_tooltip_guard ();
+            if (monitor.has_player) {
+                tooltip_text = "%s\n%s".printf (tooltip_title_label.label, tooltip_artist_label.label);
+            }
         }
 
         // Refresh width-request binding transform on ContainerItem.
@@ -504,8 +511,6 @@ public class Dock.NowPlayingItem : ContainerItem {
 
     private void show_minimal_hover_popover () {
         cancel_minimal_popdown ();
-        popover_tooltip.popdown ();
-        start_minimal_tooltip_guard ();
         minimal_hover_popover.popup ();
     }
 
@@ -517,7 +522,6 @@ public class Dock.NowPlayingItem : ContainerItem {
 
             if (!minimal_hovering_item && !minimal_hovering_popover) {
                 minimal_hover_popover.popdown ();
-                stop_minimal_tooltip_guard ();
             }
 
             return Source.REMOVE;
@@ -531,31 +535,9 @@ public class Dock.NowPlayingItem : ContainerItem {
         }
     }
 
-    private void start_minimal_tooltip_guard () {
-        if (minimal_tooltip_guard_id > 0) {
-            return;
-        }
-
-        minimal_tooltip_guard_id = Timeout.add (250, () => {
-            if (!minimal_mode || (!minimal_hovering_item && !minimal_hovering_popover)) {
-                minimal_tooltip_guard_id = 0;
-                return Source.REMOVE;
-            }
-
-            popover_tooltip.popdown ();
-            return Source.CONTINUE;
-        });
-    }
-
-    private void stop_minimal_tooltip_guard () {
-        if (minimal_tooltip_guard_id > 0) {
-            Source.remove (minimal_tooltip_guard_id);
-            minimal_tooltip_guard_id = 0;
-        }
-    }
-
     private void sync_from_monitor () {
         if (!monitor.has_player) {
+            tooltip_text = null;
             if (visible_in_dock) {
                 visible_in_dock = false;
                 minimal_hover_popover.popdown ();
@@ -576,7 +558,7 @@ public class Dock.NowPlayingItem : ContainerItem {
         if (!minimal_mode) {
             tooltip_text = "%s\n%s".printf (title, artist);
         } else {
-            tooltip_text = "";
+            tooltip_text = null;
         }
 
         var play_pause_icon = monitor.is_playing ? "media-playback-pause-symbolic" : "media-playback-start-symbolic";
