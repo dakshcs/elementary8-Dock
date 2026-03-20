@@ -9,6 +9,15 @@ this is a certified tickbox mod.
 
 ## step-by-step installation (recommended, user-local)
 
+### 0. dependencies
+```bash
+sudo apt update
+sudo apt install -y \
+  meson ninja-build valac \
+  libgtk-4-dev libadwaita-1-dev libgranite-7-dev \
+  libsoup-3.0-dev libx11-dev libwayland-dev
+```
+
 ### 1. clone the repository
 
 ### 2. configure the build directory
