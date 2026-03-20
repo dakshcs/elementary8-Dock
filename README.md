@@ -1,7 +1,10 @@
+<img width="1226" height="136" alt="image" src="https://github.com/user-attachments/assets/87ae1778-5a81-44d8-b762-66eb5695aef9" />
+
+
 i hate the workspace switcher. its gone now.
 this is a certified tickbox mod.
 
-thank you juandamian18 for making the media player
+# thank you juandamian18 for making the media player
 
 
 ## step-by-step installation (recommended, user-local)
