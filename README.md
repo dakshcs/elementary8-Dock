@@ -21,6 +21,7 @@ meson setup build --reconfigure --prefix=/usr
 ```bash
 ninja -C build
 ```
+ignore warnings and chill
 
 ### 4. install just for your user (recommended)
 so that the system doesnt get angy, and also keeps a backup just in case:
